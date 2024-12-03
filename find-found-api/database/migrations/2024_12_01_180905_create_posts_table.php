@@ -24,6 +24,8 @@ return new class extends Migration
             $table->decimal('reward_amount', 10, 2)->nullable();
             $table->integer('views_count')->default(0);
             $table->string('status')->default('active');
+            $table->json('images')->nullable();
+            $table->timestamp('date')->nullable();
             $table->timestamps();
         });
     }

@@ -1,0 +1,97 @@
+<x-app-layout>
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+                <div class="p-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900">
+                                {{ $post->title }}
+                            </h1>
+                            <div class="mt-2 flex items-center text-sm text-gray-500">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Publié {{ $post->created_at->diffForHumans() }}
+                                par {{ $post->user->name }}
+                            </div>
+                        </div>
+                        <span class="px-4 py-2 rounded-full text-sm font-semibold {{ $post->type === 'lost' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}">
+                            {{ $post->type === 'lost' ? 'Perdu' : 'Trouvé' }}
+                        </span>
+                    </div>
+
+                    @if($post->images && count($post->images) > 0)
+                        <div class="mt-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                @foreach($post->images as $image)
+                                    <div class="relative aspect-w-3 aspect-h-2">
+                                        <img src="{{ Storage::url($image) }}" alt="Image de l'objet" class="object-cover rounded-lg shadow-md">
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    <div class="mt-6 prose max-w-none">
+                        {{ $post->description }}
+                    </div>
+
+                    <div class="mt-8 border-t border-gray-200 pt-8">
+                        <h2 class="text-xl font-semibold text-gray-900">Informations</h2>
+                        
+                        <dl class="mt-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Lieu</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ $post->location }}</dd>
+                            </div>
+
+                            @if($post->has_reward)
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Récompense</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ number_format($post->reward_amount, 2) }} €</dd>
+                            </div>
+                            @endif
+
+                            @if($post->contact_phone)
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Téléphone</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ $post->contact_phone }}</dd>
+                            </div>
+                            @endif
+
+                            @if($post->contact_email)
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Email</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ $post->contact_email }}</dd>
+                            </div>
+                            @endif
+                        </dl>
+                    </div>
+
+                    <div class="mt-8 flex justify-between">
+                        <a href="{{ route('posts.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-100 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-200 active:bg-gray-300 focus:outline-none focus:border-gray-300 focus:ring ring-gray-200 disabled:opacity-25 transition">
+                            Retour à la liste
+                        </a>
+                        
+                        @if(auth()->check() && auth()->id() === $post->user_id)
+                            <div class="flex space-x-2">
+                                <a href="{{ route('posts.edit', $post) }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition">
+                                    Modifier
+                                </a>
+                                <button type="button" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-900 focus:outline-none focus:border-red-900 focus:ring ring-red-300 disabled:opacity-25 transition">
+                                    Supprimer
+                                </button>
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="mt-12">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-6">Commentaires</h2>
+                        @livewire('comments', ['post' => $post])
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</x-app-layout>

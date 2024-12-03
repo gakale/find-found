@@ -21,6 +21,8 @@ class Post extends Model
         'contact_email',
         'has_reward',
         'reward_amount',
+        'images',
+        'user_id',
         'status'
     ];
 
@@ -28,6 +30,7 @@ class Post extends Model
         'has_reward' => 'boolean',
         'reward_amount' => 'decimal:2',
         'views_count' => 'integer',
+        'images' => 'array',
     ];
 
     public function user()
