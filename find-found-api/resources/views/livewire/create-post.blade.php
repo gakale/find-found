@@ -8,9 +8,10 @@
 
         <div>
             <label for="type" class="block text-sm font-medium text-gray-700">Type d'annonce</label>
-            <select wire:model="type" id="type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            <select wire:model.live="type" id="type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 <option value="lost">Objet perdu</option>
                 <option value="found">Objet trouvé</option>
+                <option value="missing_person">Personne disparue</option>
             </select>
             @error('type') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
         </div>
@@ -31,20 +32,20 @@
                     <div class="flex text-sm text-gray-600">
                         <label for="images" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
                             <span>Télécharger des images</span>
-                            <input id="images" type="file" wire:model="images" class="sr-only" multiple accept="image/*">
+                            <input type="file" wire:model="images" id="images" multiple class="sr-only" accept="image/*">
                         </label>
                     </div>
-                    <p class="text-xs text-gray-500">PNG, JPG jusqu'à 2MB</p>
+                    <p class="text-xs text-gray-500">PNG, JPG, GIF jusqu'à 2MB</p>
                 </div>
             </div>
             @error('images.*') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
 
-            @if(count($images) > 0)
-                <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
+            @if ($images)
+                <div class="mt-4 grid grid-cols-2 gap-4">
                     @foreach($images as $index => $image)
                         <div class="relative">
-                            <img src="{{ $image->temporaryUrl() }}" alt="Preview" class="h-24 w-full object-cover rounded-lg">
-                            <button type="button" wire:click="removeImage({{ $index }})" class="absolute top-0 right-0 -mt-2 -mr-2 p-1 bg-red-600 rounded-full text-white hover:bg-red-700 focus:outline-none">
+                            <img src="{{ $image->temporaryUrl() }}" alt="Preview" class="h-24 w-full object-cover rounded">
+                            <button type="button" wire:click="removeImage({{ $index }})" class="absolute top-0 right-0 -mt-2 -mr-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
@@ -55,43 +56,150 @@
             @endif
         </div>
 
+        @if($type === 'missing_person')
+            <div class="space-y-6 bg-red-50 p-6 rounded-lg border border-red-100">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="person_name" class="block text-sm font-medium text-gray-700">Nom de la personne</label>
+                        <input type="text" wire:model="person_name" id="person_name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        @error('person_name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label for="person_age" class="block text-sm font-medium text-gray-700">Âge</label>
+                        <input type="number" wire:model="person_age" id="person_age" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        @error('person_age') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label for="person_gender" class="block text-sm font-medium text-gray-700">Genre</label>
+                        <select wire:model="person_gender" id="person_gender" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">Sélectionner...</option>
+                            <option value="male">Masculin</option>
+                            <option value="female">Féminin</option>
+                            <option value="other">Autre</option>
+                        </select>
+                        @error('person_gender') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label for="person_height" class="block text-sm font-medium text-gray-700">Taille (optionnel)</label>
+                        <input type="text" wire:model="person_height" id="person_height" placeholder="ex: 1m75" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        @error('person_height') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label for="person_weight" class="block text-sm font-medium text-gray-700">Poids (optionnel)</label>
+                        <input type="text" wire:model="person_weight" id="person_weight" placeholder="ex: 70kg" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        @error('person_weight') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label for="last_seen_date" class="block text-sm font-medium text-gray-700">Date de dernière vue</label>
+                        <input type="datetime-local" wire:model="last_seen_date" id="last_seen_date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        @error('last_seen_date') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+                <div>
+                    <label for="last_seen_location" class="block text-sm font-medium text-gray-700">Lieu de dernière vue</label>
+                    <input type="text" wire:model="last_seen_location" id="last_seen_location" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    @error('last_seen_location') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
+                    <label for="clothes_worn" class="block text-sm font-medium text-gray-700">Vêtements portés</label>
+                    <textarea wire:model="clothes_worn" id="clothes_worn" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                    @error('clothes_worn') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
+                    <label for="distinctive_features" class="block text-sm font-medium text-gray-700">Signes distinctifs</label>
+                    <textarea wire:model="distinctive_features" id="distinctive_features" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                    @error('distinctive_features') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
+                    <label for="person_description" class="block text-sm font-medium text-gray-700">Description supplémentaire (optionnel)</label>
+                    <textarea wire:model="person_description" id="person_description" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                    @error('person_description') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
+                    <label for="police_report_number" class="block text-sm font-medium text-gray-700">Numéro de rapport de police (optionnel)</label>
+                    <input type="text" wire:model="police_report_number" id="police_report_number" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    @error('police_report_number') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="flex items-center">
+                    <input type="checkbox" wire:model="is_urgent" id="is_urgent" class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded">
+                    <label for="is_urgent" class="ml-2 block text-sm text-red-700">Cas urgent</label>
+                </div>
+            </div>
+        @endif
+
+        <div class="space-y-6">
+            <div>
+                <label for="contact_phone" class="block text-sm font-medium text-gray-700">Numéro de téléphone</label>
+                <input type="tel" wire:model="contact_phone" id="contact_phone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                @error('contact_phone') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            </div>
+
+            <div>
+                <label for="contact_email" class="block text-sm font-medium text-gray-700">Email (optionnel)</label>
+                <input type="email" wire:model="contact_email" id="contact_email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                @error('contact_email') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex items-center">
+                    <input type="checkbox" wire:model="has_reward" id="has_reward" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                    <label for="has_reward" class="ml-2 block text-sm text-gray-700">Proposer une récompense</label>
+                </div>
+
+                @if($has_reward)
+                    <div>
+                        <label for="reward_amount" class="block text-sm font-medium text-gray-700">Montant de la récompense</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 sm:text-sm">€</span>
+                            </div>
+                            <input type="number" wire:model="reward_amount" id="reward_amount" class="pl-7 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="0.00" step="0.01" min="0">
+                        </div>
+                        @error('reward_amount') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                    </div>
+                @endif
+            </div>
+        </div>
+
         <div>
             <label for="location" class="block text-sm font-medium text-gray-700">Lieu</label>
             <input type="text" wire:model="location" id="location" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
             @error('location') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
         </div>
 
-        <div>
-            <label for="contact_phone" class="block text-sm font-medium text-gray-700">Téléphone de contact</label>
-            <input type="tel" wire:model="contact_phone" id="contact_phone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-            @error('contact_phone') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-        </div>
-
-        <div>
-            <label for="contact_email" class="block text-sm font-medium text-gray-700">Email de contact</label>
-            <input type="email" wire:model="contact_email" id="contact_email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-            @error('contact_email') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-        </div>
-
-        <div class="space-y-4">
-            <div class="flex items-center">
-                <input type="checkbox" wire:model="has_reward" id="has_reward" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                <label for="has_reward" class="ml-2 block text-sm text-gray-700">Récompense proposée</label>
+        @if (session()->has('error'))
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                <span class="block sm:inline">{{ session('error') }}</span>
             </div>
-
-            @if($has_reward)
-                <div>
-                    <label for="reward_amount" class="block text-sm font-medium text-gray-700">Montant de la récompense (€)</label>
-                    <input type="number" wire:model="reward_amount" id="reward_amount" step="0.01" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    @error('reward_amount') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                </div>
-            @endif
-        </div>
+        @endif
 
         <div class="flex justify-end">
-            <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150">
+            <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                 Publier l'annonce
             </button>
         </div>
     </form>
+
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('show-validation-errors', ({errors}) => {
+                let errorMessage = 'Veuillez corriger les erreurs suivantes :\n';
+                for (let field in errors) {
+                    errorMessage += `- ${errors[field]}\n`;
+                }
+                alert(errorMessage);
+            });
+        });
+    </script>
 </div>

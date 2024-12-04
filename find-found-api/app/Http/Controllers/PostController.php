@@ -38,7 +38,18 @@ class PostController extends Controller
             'contact_email' => 'nullable|email',
             'has_reward' => 'boolean',
             'reward_amount' => 'nullable|numeric|min:0',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
+
+        if ($request->hasFile('images')) {
+            $images = [];
+            foreach ($request->file('images') as $image) {
+                $path = $image->store('posts', 'public');
+                $images[] = $path;
+            }
+            $validated['images'] = $images;
+        }
 
         $post = auth()->user()->posts()->create($validated);
 
