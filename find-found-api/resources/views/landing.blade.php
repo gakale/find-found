@@ -14,10 +14,46 @@
     <nav class="bg-white shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div class="flex justify-between items-center">
-                <div class="text-2xl font-bold text-gray-900">Lost & Found</div>
-                <a href="{{ route('register') }}" class="inline-flex items-center px-4 py-2 bg-brown-600 hover:bg-brown-700 text-white font-medium rounded-lg transition-colors">
-                    Créer mon compte
-                </a>
+                <div class="flex items-center">
+                    <div class="text-2xl font-bold text-gray-900">Lost & Found</div>
+                    <!-- Navigation Links -->
+                    <div class="hidden space-x-8 sm:ml-10 sm:flex">
+                        <a href="{{ route('posts.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('posts.index') ? 'border-brown-600 text-brown-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out">
+                            Annonces
+                        </a>
+                        @auth
+                        <a href="{{ route('posts.my-posts') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('posts.my-posts') ? 'border-brown-600 text-brown-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out">
+                            Mes publications
+                        </a>
+                        @endauth
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    @auth
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" class="flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out">
+                                {{ Auth::user()->name }}
+                            </button>
+
+                            <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5">
+                                <a href="{{ route('posts.my-posts') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    Mes publications
+                                </a>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100">
+                                        Se déconnecter
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @else
+                        <a href="{{ route('login') }}" class="text-sm text-gray-700 hover:text-gray-900">Se connecter</a>
+                        <a href="{{ route('register') }}" class="inline-flex items-center px-4 py-2 bg-brown-600 hover:bg-brown-700 text-white font-medium rounded-lg transition-colors">
+                            Créer mon compte
+                        </a>
+                    @endauth
+                </div>
             </div>
         </div>
     </nav>

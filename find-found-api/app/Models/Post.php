@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\Comment;
 use App\Models\Like;
@@ -14,6 +15,7 @@ class Post extends Model
 
     protected $fillable = [
         'title',
+        'slug',
         'description',
         'type',
         'location',
@@ -78,10 +80,28 @@ class Post extends Model
     {
         parent::boot();
 
+        static::creating(function ($post) {
+            if (empty($post->slug)) {
+                $post->slug = Str::slug($post->title);
+                
+                // Vérifier si le slug existe déjà
+                $count = 2;
+                while (static::where('slug', $post->slug)->exists()) {
+                    $post->slug = Str::slug($post->title) . '-' . $count;
+                    $count++;
+                }
+            }
+        });
+
         static::saving(function ($post) {
             if (!in_array($post->type, ['lost', 'found', 'missing_person'])) {
                 throw new \InvalidArgumentException('Invalid post type');
             }
         });
+    }
+
+    public function getRouteKeyName()
+    {
+        return 'slug';
     }
 }
