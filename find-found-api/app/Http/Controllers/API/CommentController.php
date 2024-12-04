@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Models\Comment;
 use App\Models\Post;
+use App\Models\Comment;
 use Illuminate\Http\Request;
 
 class CommentController extends Controller
@@ -14,12 +14,9 @@ class CommentController extends Controller
      */
     public function index(Post $post)
     {
-        $comments = $post->comments()
-            ->with('user')
-            ->latest()
-            ->paginate(10);
-
-        return response()->json($comments);
+        return response()->json([
+            'comments' => $post->comments()->with('user')->latest()->get()
+        ]);
     }
 
     /**
@@ -27,45 +24,55 @@ class CommentController extends Controller
      */
     public function store(Request $request, Post $post)
     {
-        $validated = $request->validate([
-            'content' => 'required|string'
+        $request->validate([
+            'content' => 'required|string|max:1000'
         ]);
 
         $comment = $post->comments()->create([
-            'user_id' => $request->user()->id,
-            'content' => $validated['content']
+            'content' => $request->content,
+            'user_id' => auth()->id()
         ]);
 
-        $comment->load('user');
-
-        return response()->json($comment, 201);
+        return response()->json([
+            'comment' => $comment->load('user')
+        ], 201);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Post $post, Comment $comment)
+    public function update(Request $request, Comment $comment)
     {
-        $this->authorize('update', $comment);
+        if ($comment->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
 
-        $validated = $request->validate([
-            'content' => 'required|string'
+        $request->validate([
+            'content' => 'required|string|max:1000'
         ]);
 
-        $comment->update($validated);
+        $comment->update([
+            'content' => $request->content
+        ]);
 
-        return response()->json($comment);
+        return response()->json([
+            'comment' => $comment->load('user')
+        ]);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Post $post, Comment $comment)
+    public function destroy(Comment $comment)
     {
-        $this->authorize('delete', $comment);
+        if ($comment->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
 
         $comment->delete();
 
-        return response()->json(null, 204);
+        return response()->json([
+            'message' => 'Commentaire supprimé avec succès'
+        ]);
     }
 }

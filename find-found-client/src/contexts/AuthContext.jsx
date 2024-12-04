@@ -1,114 +1,84 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { authService } from '../services/api';
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-}
-
-export function AuthProvider({ children }) {
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  const login = async (email, password) => {
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      const response = await fetch('http://localhost:8000/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Une erreur est survenue lors de la connexion');
+      const userData = await authService.getCurrentUser();
+      if (userData) {
+        setUser(userData);
       }
-
-      setUser(data.user);
-      localStorage.setItem('token', data.token);
-      return data;
-    } catch (err) {
-      setError(err.message);
-      throw err;
+    } catch (error) {
+      console.error('Auth check failed:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const register = async (name, email, password, password_confirmation) => {
+  const login = async (credentials) => {
     try {
-      setLoading(true);
-      setError(null);
-      const response = await fetch('http://localhost:8000/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, password, password_confirmation }),
-      });
+      const response = await authService.login(credentials);
+      setUser(response.user);
+      navigate('/');
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Une erreur est survenue'
+      };
+    }
+  };
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Une erreur est survenue lors de l\'inscription');
-      }
-
-      setUser(data.user);
-      localStorage.setItem('token', data.token);
-      return data;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
+  const register = async (userData) => {
+    try {
+      const response = await authService.register(userData);
+      setUser(response.user);
+      navigate('/');
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Une erreur est survenue'
+      };
     }
   };
 
   const logout = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      const token = localStorage.getItem('token');
-      
-      if (token) {
-        await fetch('http://localhost:8000/api/logout', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-      }
-
+      await authService.logout();
       setUser(null);
-      localStorage.removeItem('token');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
     }
   };
 
-  const value = {
-    user,
-    loading,
-    error,
-    login,
-    register,
-    logout,
-  };
+  if (loading) {
+    return <div>Chargement...</div>;
+  }
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

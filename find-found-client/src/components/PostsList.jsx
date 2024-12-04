@@ -1,153 +1,170 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { mockPosts } from '../mock/posts';
-import PostCard from './PostCard';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import { postService } from '../services/api';
 
-const ITEMS_PER_PAGE = 10;
-const CATEGORIES = ['Tous', 'Électronique', 'Accessoires', 'Clés', 'Bijoux', 'Jouets'];
-
-export default function PostsList({ defaultType = 'all' }) {
+export default function PostsList({ defaultType = null }) {
+  const [type, setType] = useState(defaultType);
+  const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [filters, setFilters] = useState({
-    type: defaultType,
-    category: 'Tous',
-    searchQuery: '',
+
+  const { data: posts, isLoading, error } = useQuery({
+    queryKey: ['posts', type, search, currentPage],
+    queryFn: () => postService.getPosts({ type, search, page: currentPage }),
+    keepPreviousData: true
   });
 
-  // Mettre à jour le filtre de type lorsque defaultType change
-  useEffect(() => {
-    setFilters(prev => ({
-      ...prev,
-      type: defaultType
-    }));
-  }, [defaultType]);
-
-  // Filtrer les posts
-  const filteredPosts = useMemo(() => {
-    return mockPosts.filter(post => {
-      const matchesType = filters.type === 'all' || post.type === filters.type;
-      const matchesCategory = filters.category === 'Tous' || post.category === filters.category;
-      const matchesSearch = filters.searchQuery === '' || 
-        post.title.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
-        post.description.toLowerCase().includes(filters.searchQuery.toLowerCase());
-      
-      return matchesType && matchesCategory && matchesSearch;
-    });
-  }, [filters]);
-
-  // Pagination
-  const totalPages = Math.ceil(filteredPosts.length / ITEMS_PER_PAGE);
-  const paginatedPosts = filteredPosts.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
-
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilters(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    setCurrentPage(1);
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
   };
+
+  const handleTypeChange = (newType) => {
+    setType(newType);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-500">Une erreur est survenue lors du chargement des posts.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* En-tête */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
-          {filters.type === 'lost' ? 'Objets perdus' : 
-           filters.type === 'found' ? 'Objets trouvés' : 
-           'Tous les objets'}
-        </h1>
-        <p className="mt-2 text-gray-600">
-          {filters.type === 'lost' ? 'Retrouvez les objets que les gens ont perdus' : 
-           filters.type === 'found' ? 'Découvrez les objets qui ont été trouvés' : 
-           'Parcourez tous les objets perdus et trouvés'}
-        </p>
-      </div>
-
-      {/* Filtres */}
-      <div className="mb-8 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="flex space-x-4">
+            <button
+              onClick={() => handleTypeChange(null)}
+              className={`px-4 py-2 rounded-lg ${
+                type === null
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Tous
+            </button>
+            <button
+              onClick={() => handleTypeChange('lost')}
+              className={`px-4 py-2 rounded-lg ${
+                type === 'lost'
+                  ? 'bg-red-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Objets perdus
+            </button>
+            <button
+              onClick={() => handleTypeChange('found')}
+              className={`px-4 py-2 rounded-lg ${
+                type === 'found'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Objets trouvés
+            </button>
+          </div>
+          <div className="w-full sm:w-auto">
             <input
               type="text"
-              name="searchQuery"
-              placeholder="Rechercher un objet..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              value={filters.searchQuery}
-              onChange={handleFilterChange}
+              placeholder="Rechercher..."
+              value={search}
+              onChange={handleSearchChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
-            <svg 
-              className="absolute right-3 top-2.5 h-5 w-5 text-gray-400"
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
           </div>
-
-          <select
-            name="type"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            value={filters.type}
-            onChange={handleFilterChange}
-          >
-            <option value="all">Tous les types</option>
-            <option value="lost">Objets perdus</option>
-            <option value="found">Objets trouvés</option>
-          </select>
-
-          <select
-            name="category"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            value={filters.category}
-            onChange={handleFilterChange}
-          >
-            {CATEGORIES.map(category => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
         </div>
       </div>
 
-      {/* Liste des posts */}
-      {paginatedPosts.length > 0 ? (
+      {posts?.data.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {paginatedPosts.map(post => (
-            <PostCard key={post.id} post={post} />
+          {posts.data.map((post) => (
+            <Link
+              key={post.id}
+              to={`/posts/${post.id}`}
+              className="block bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+            >
+              <div className="relative">
+                <img
+                  src={post.image_url || 'https://via.placeholder.com/400x300'}
+                  alt={post.title}
+                  className="w-full h-48 object-cover"
+                />
+                <span
+                  className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium ${
+                    post.type === 'lost'
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-green-100 text-green-800'
+                  }`}
+                >
+                  {post.type === 'lost' ? 'Perdu' : 'Trouvé'}
+                </span>
+              </div>
+              <div className="p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {post.title}
+                </h3>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                  {post.description}
+                </p>
+                <div className="flex justify-between items-center text-sm text-gray-500">
+                  <span>{new Date(post.date).toLocaleDateString()}</span>
+                  <span>{post.location}</span>
+                </div>
+                {post.reward_amount > 0 && (
+                  <div className="mt-2 text-green-600 font-medium">
+                    Récompense : {post.reward_amount}€
+                  </div>
+                )}
+              </div>
+            </Link>
           ))}
         </div>
       ) : (
         <div className="text-center py-12">
-          <h3 className="text-xl font-medium text-gray-900">Aucun résultat trouvé</h3>
-          <p className="mt-2 text-gray-600">Essayez de modifier vos filtres de recherche</p>
+          <h3 className="text-lg font-medium text-gray-900">
+            Aucun post trouvé
+          </h3>
+          <p className="mt-2 text-gray-600">
+            Essayez de modifier vos critères de recherche
+          </p>
         </div>
       )}
 
-      {/* Pagination */}
-      {paginatedPosts.length > 0 && (
-        <div className="mt-8 flex justify-center space-x-2">
-          <button
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50"
-          >
-            Précédent
-          </button>
-          <div className="flex items-center px-4">
-            Page {currentPage} sur {totalPages}
-          </div>
-          <button
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50"
-          >
-            Suivant
-          </button>
+      {posts?.meta?.links && (
+        <div className="mt-8 flex justify-center">
+          <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+            {posts.meta.links.map((link, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  if (link.url) {
+                    // Extraire le numéro de page de l'URL et mettre à jour
+                    const page = new URL(link.url).searchParams.get('page');
+                    setCurrentPage(parseInt(page));
+                  }
+                }}
+                disabled={!link.url}
+                className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                  link.active
+                    ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                    : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                } ${!link.url && 'cursor-not-allowed opacity-50'}`}
+              >
+                <span dangerouslySetInnerHTML={{ __html: link.label }} />
+              </button>
+            ))}
+          </nav>
         </div>
       )}
     </div>

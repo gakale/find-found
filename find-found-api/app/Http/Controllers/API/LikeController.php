@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Post;
+use App\Models\Like;
+use Illuminate\Http\Request;
 
 class LikeController extends Controller
 {
@@ -13,12 +14,11 @@ class LikeController extends Controller
      */
     public function index(Post $post)
     {
-        $likes = $post->likes()
-            ->with('user')
-            ->latest()
-            ->paginate(10);
-
-        return response()->json($likes);
+        $likes = $post->likes()->with('user')->latest()->get();
+        
+        return response()->json([
+            'likes' => $likes
+        ]);
     }
 
     /**
@@ -56,25 +56,35 @@ class LikeController extends Controller
     /**
      * Toggle like on a post.
      */
-    public function toggle(Request $request, Post $post)
+    public function toggle(Post $post)
     {
-        $existing_like = $post->likes()
-            ->where('user_id', $request->user()->id)
-            ->first();
+        $user = auth()->user();
+        $existing_like = $post->likes()->where('user_id', $user->id)->first();
 
         if ($existing_like) {
             $existing_like->delete();
             $action = 'unliked';
         } else {
             $post->likes()->create([
-                'user_id' => $request->user()->id
+                'user_id' => $user->id
             ]);
             $action = 'liked';
         }
 
         return response()->json([
-            'message' => "Post successfully {$action}",
+            'action' => $action,
             'likes_count' => $post->likes()->count()
+        ]);
+    }
+
+    /**
+     * Get the likes count of a post.
+     */
+    public function count(Post $post)
+    {
+        return response()->json([
+            'likes_count' => $post->likes()->count(),
+            'user_has_liked' => $post->likes()->where('user_id', auth()->id())->exists()
         ]);
     }
 }

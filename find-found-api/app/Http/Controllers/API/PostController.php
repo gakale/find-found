@@ -5,143 +5,157 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class PostController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
-        $query = Post::with('user')
-            ->latest();
+        try {
+            $query = Post::with('user')->latest();
 
-        // Apply type filter
-        if ($request->has('type') && in_array($request->type, ['lost', 'found'])) {
-            $query->where('type', $request->type);
+            // Filtrer par type (lost/found)
+            if ($request->has('type')) {
+                $query->where('type', $request->type);
+            }
+
+            // Recherche par titre ou description
+            if ($request->has('search')) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+                });
+            }
+
+            // Pagination
+            $posts = $query->paginate(10);
+            
+            return response()->json($posts);
+        } catch (\Exception $e) {
+            Log::error('Error in PostController@index: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-
-        // Apply status filter
-        if ($request->has('status') && in_array($request->status, ['active', 'resolved'])) {
-            $query->where('status', $request->status);
-        }
-
-        // Apply search filter
-        if ($request->has('search')) {
-            $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
-                $q->where('title', 'like', "%{$searchTerm}%")
-                  ->orWhere('description', 'like', "%{$searchTerm}%")
-                  ->orWhere('location', 'like', "%{$searchTerm}%");
-            });
-        }
-
-        // Paginate results
-        $posts = $query->paginate(10);
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $posts
-        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'type' => 'required|in:lost,found',
-            'location' => 'nullable|string|max:255',
-            'contact_phone' => 'nullable|string|max:20',
-            'contact_email' => 'nullable|email|max:255',
-            'has_reward' => 'boolean',
-            'reward_amount' => 'nullable|numeric|min:0',
-        ]);
-
-        $post = $request->user()->posts()->create($validated);
-
-        return response()->json($post, 201);
-    }
-
-    /**
-     * Display the specified resource.
-     */
     public function show(Post $post)
     {
-        $post->load(['user', 'comments.user', 'likes']);
-        $post->increment('views_count');
-
-        return response()->json($post);
+        try {
+            // Incrémenter le compteur de vues
+            $post->increment('views_count');
+            
+            return response()->json($post->load('user'));
+        } catch (\Exception $e) {
+            Log::error('Error in PostController@show: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    public function store(Request $request)
+    {
+        try {
+            $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'required|string',
+                'type' => 'required|in:lost,found',
+                'location' => 'required|string',
+                'date' => 'required|date',
+                'image' => 'nullable|image|max:2048', // 2MB max
+                'reward_amount' => 'nullable|numeric|min:0'
+            ]);
+
+            $post = new Post($request->except('image'));
+            $post->user_id = auth()->id();
+            $post->status = 'active';
+
+            if ($request->hasFile('image')) {
+                $path = $request->file('image')->store('posts', 'public');
+                $post->image_url = Storage::url($path);
+            }
+
+            $post->save();
+
+            return response()->json($post->load('user'), 201);
+        } catch (\Exception $e) {
+            Log::error('Error in PostController@store: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
     public function update(Request $request, Post $post)
     {
-        $this->authorize('update', $post);
+        try {
+            // Vérifier si l'utilisateur est autorisé à modifier ce post
+            if ($post->user_id !== auth()->id()) {
+                return response()->json(['message' => 'Non autorisé'], 403);
+            }
 
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'type' => 'required|in:lost,found',
-            'location' => 'nullable|string|max:255',
-            'contact_phone' => 'nullable|string|max:20',
-            'contact_email' => 'nullable|email|max:255',
-            'has_reward' => 'boolean',
-            'reward_amount' => 'nullable|numeric|min:0',
-            'status' => 'string|in:active,resolved',
-        ]);
+            $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'required|string',
+                'location' => 'required|string',
+                'date' => 'required|date',
+                'image' => 'nullable|image|max:2048',
+                'reward_amount' => 'nullable|numeric|min:0',
+                'status' => 'nullable|in:active,resolved,closed'
+            ]);
 
-        $post->update($validated);
+            $post->fill($request->except('image'));
 
-        return response()->json($post);
+            if ($request->hasFile('image')) {
+                // Supprimer l'ancienne image si elle existe
+                if ($post->image_url) {
+                    Storage::delete(str_replace('/storage', 'public', $post->image_url));
+                }
+                
+                $path = $request->file('image')->store('posts', 'public');
+                $post->image_url = Storage::url($path);
+            }
+
+            $post->save();
+
+            return response()->json($post->load('user'));
+        } catch (\Exception $e) {
+            Log::error('Error in PostController@update: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Post $post)
     {
-        $this->authorize('delete', $post);
+        try {
+            // Vérifier si l'utilisateur est autorisé à supprimer ce post
+            if ($post->user_id !== auth()->id()) {
+                return response()->json(['message' => 'Non autorisé'], 403);
+            }
 
-        $post->delete();
+            // Supprimer l'image si elle existe
+            if ($post->image_url) {
+                Storage::delete(str_replace('/storage', 'public', $post->image_url));
+            }
 
-        return response()->json(null, 204);
+            $post->delete();
+
+            return response()->json(['message' => 'Post supprimé avec succès']);
+        } catch (\Exception $e) {
+            Log::error('Error in PostController@destroy: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
-    /**
-     * Search for posts.
-     */
-    public function search(Request $request)
+    public function userPosts()
     {
-        $query = Post::query();
+        try {
+            $posts = Post::where('user_id', auth()->id())
+                        ->with('user')
+                        ->latest()
+                        ->get();
 
-        if ($request->has('type')) {
-            $query->where('type', $request->type);
+            return response()->json($posts);
+        } catch (\Exception $e) {
+            Log::error('Error in PostController@userPosts: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-
-        if ($request->has('status')) {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->has('search')) {
-            $searchTerm = $request->search;
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('title', 'like', "%{$searchTerm}%")
-                  ->orWhere('description', 'like', "%{$searchTerm}%")
-                  ->orWhere('location', 'like', "%{$searchTerm}%");
-            });
-        }
-
-        $posts = $query->with(['user', 'comments', 'likes'])
-            ->withCount(['comments', 'likes'])
-            ->latest()
-            ->paginate(10);
-
-        return response()->json($posts);
     }
 }

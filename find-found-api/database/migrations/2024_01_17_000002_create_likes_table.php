@@ -6,10 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+    public function up()
     {
         Schema::create('likes', function (Blueprint $table) {
             $table->id();
@@ -17,14 +14,12 @@ return new class extends Migration
             $table->foreignId('post_id')->constrained()->onDelete('cascade');
             $table->timestamps();
 
+            // Un utilisateur ne peut liker qu'une seule fois un post
             $table->unique(['user_id', 'post_id']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('likes');
     }
