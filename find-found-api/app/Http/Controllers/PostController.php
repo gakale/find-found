@@ -18,8 +18,12 @@ class PostController extends Controller
         return view('posts.index');
     }
 
+    /**
+     * Affiche une publication spécifique.
+     */
     public function show(Post $post)
     {
+        // Le modèle utilise déjà le slug comme clé de route
         return view('posts.show', compact('post'));
     }
 

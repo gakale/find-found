@@ -1,4 +1,26 @@
 <x-app-layout>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{{ $post->title }} - {{ config('app.name') }}</title>
+
+        <!-- Meta tags pour le partage social -->
+        <meta property="og:title" content="{{ $post->title }}" />
+        <meta property="og:description" content="{{ Str::limit(strip_tags($post->description), 200) }}" />
+        @if(count($post->images) > 0)
+            <meta property="og:image" content="{{ Storage::url($post->images[0]) }}" />
+        @endif
+        <meta property="og:url" content="{{ url()->current() }}" />
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{{ $post->title }}">
+        <meta name="twitter:description" content="{{ Str::limit(strip_tags($post->description), 200) }}">
+        @if(count($post->images) > 0)
+            <meta name="twitter:image" content="{{ Storage::url($post->images[0]) }}" />
+        @endif
+
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    </head>
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
@@ -19,22 +41,29 @@
                         <span class="px-4 py-2 rounded-full text-sm font-semibold {{ $post->type === 'lost' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}">
                             {{ $post->type === 'lost' ? 'Perdu' : 'Trouvé' }}
                         </span>
+                        <!-- Boutons de partage -->
+                        <div class="flex space-x-4">
+                            <x-social-share 
+                                :url="url()->current()"
+                                :title="$post->title"
+                            />
+                        </div>
                     </div>
 
-                    @if($post->images && count($post->images) > 0)
-                        <div class="mt-6">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    @if(count($post->images) > 0)
+                        <div class="mb-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                 @foreach($post->images as $image)
-                                    <div class="relative aspect-w-3 aspect-h-2">
-                                        <img src="{{ Storage::url($image) }}" alt="Image de l'objet" class="object-cover rounded-lg shadow-md">
-                                    </div>
+                                <div class="relative aspect-w-16 aspect-h-9">
+                                    <img src="{{ Storage::url($image) }}" alt="Image de l'annonce" class="object-cover rounded-lg shadow-md">
+                                </div>
                                 @endforeach
                             </div>
                         </div>
                     @endif
 
                     <div class="mt-6 prose max-w-none">
-                        {{ $post->description }}
+                        {!! $post->description !!}
                     </div>
 
                     <div class="mt-8 border-t border-gray-200 pt-8">
@@ -95,3 +124,23 @@
         </div>
     </div>
 </x-app-layout>
+
+<style>
+    .social-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 9999px;
+        color: white;
+        transition: all 0.2s;
+    }
+    .social-button:hover {
+        transform: scale(1.1);
+    }
+    .social-button.facebook { background-color: #1877f2; }
+    .social-button.twitter { background-color: #1da1f2; }
+    .social-button.whatsapp { background-color: #25d366; }
+    .social-button.telegram { background-color: #0088cc; }
+</style>
