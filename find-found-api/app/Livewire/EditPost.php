@@ -44,7 +44,7 @@ class EditPost extends Component
     protected $rules = [
         'title' => 'required|string|max:255',
         'description' => 'required|string',
-        'type' => 'required|in:lost,found',
+        'type' => 'required|in:lost,found,missing_person',
         'location' => 'required|string',
         'contact_phone' => 'nullable|string',
         'contact_email' => 'nullable|email',

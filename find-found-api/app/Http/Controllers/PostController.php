@@ -37,19 +37,22 @@ class PostController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'type' => 'required|in:lost,found',
+            'type' => 'required|in:lost,found,missing_person',
             'location' => 'required|string',
             'contact_phone' => 'nullable|string',
             'contact_email' => 'nullable|email',
             'has_reward' => 'boolean',
             'reward_amount' => 'nullable|numeric|min:0',
-            'images' => 'nullable|array',
+            'images' => 'nullable|array|max:3',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
+        ], [
+            'images.max' => 'Vous ne pouvez télécharger que 3 images maximum.',
         ]);
 
         if ($request->hasFile('images')) {
             $images = [];
             foreach ($request->file('images') as $image) {
+                if (count($images) >= 3) break;
                 $path = $image->store('posts', 'public');
                 $images[] = $path;
             }

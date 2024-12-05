@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    'google' => [
+        'adsense' => [
+            'enabled' => env('GOOGLE_ADSENSE_ENABLED', false),
+            'client' => env('GOOGLE_ADSENSE_CLIENT', ''),
+        ],
+    ],
+
 ];

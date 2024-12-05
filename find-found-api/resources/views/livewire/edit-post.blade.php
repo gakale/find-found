@@ -11,6 +11,7 @@
             <select wire:model="type" id="type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 <option value="lost">Objet perdu</option>
                 <option value="found">Objet trouvé</option>
+                <option value="missing_person">Personne disparue</option>
             </select>
             @error('type') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
         </div>

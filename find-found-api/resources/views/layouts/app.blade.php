@@ -7,6 +7,11 @@
     
     <title>{{ config('app.name', 'Lost and Found') }}</title>
 
+    @if(config('services.google.adsense.enabled'))
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ config('services.google.adsense.client') }}"
+            crossorigin="anonymous"></script>
+    @endif
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -71,10 +76,13 @@
         </nav>
 
         <!-- Page Content -->
-        <main class="py-4">
+        <main>
             {{ $slot }}
         </main>
     </div>
+
+    <!-- Scripts empilés -->
+    @stack('scripts')
 
     <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
