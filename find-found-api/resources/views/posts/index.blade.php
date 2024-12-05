@@ -47,7 +47,11 @@
                 </div>
             </div>
 
+            <x-google-ad slot="top-banner" />
+
             @livewire('posts-list')
+
+            <x-google-ad slot="bottom-banner" />
         </div>
     </div>
 </x-app-layout>

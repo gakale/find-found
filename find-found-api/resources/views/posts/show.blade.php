@@ -20,6 +20,7 @@
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css">
     </head>
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -38,8 +39,14 @@
                                 par {{ $post->user->name }}
                             </div>
                         </div>
-                        <span class="px-4 py-2 rounded-full text-sm font-semibold {{ $post->type === 'lost' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}">
-                            {{ $post->type === 'lost' ? 'Perdu' : 'Trouvé' }}
+                        <span class="px-4 py-2 rounded-full text-sm font-semibold {{ 
+                            $post->type === 'lost' ? 'bg-red-100 text-red-800' : 
+                            ($post->type === 'found' ? 'bg-green-100 text-green-800' : 
+                            'bg-purple-100 text-purple-800') 
+                        }}">
+                            {{ $post->type === 'lost' ? 'Perdu' : 
+                               ($post->type === 'found' ? 'Trouvé' : 
+                               'Personne disparue') }}
                         </span>
                         <!-- Boutons de partage -->
                         <div class="flex space-x-4">
@@ -53,18 +60,40 @@
                     @if(count($post->images) > 0)
                         <div class="mb-6">
                             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                                @foreach($post->images as $image)
+                                @foreach($post->images as $index => $image)
                                 <div class="relative aspect-w-16 aspect-h-9">
-                                    <img src="{{ Storage::url($image) }}" alt="Image de l'annonce" class="object-cover rounded-lg shadow-md">
+                                    <img src="{{ Storage::url($image) }}" 
+                                         alt="Image {{ $index + 1 }}" 
+                                         class="object-cover w-full h-full rounded-lg shadow-md">
+                                    
+                                    <!-- Bouton pour agrandir -->
+                                    <a href="{{ Storage::url($image) }}" 
+                                       data-lightbox="image-{{ $index }}" 
+                                       data-title="{{ $post->title }} - Image {{ $index + 1 }}"
+                                       class="absolute top-2 right-2 p-2 bg-black bg-opacity-50 rounded-full hover:bg-opacity-75 transition-all duration-200">
+                                        <svg class="w-6 h-6 text-white" 
+                                             fill="none" 
+                                             stroke="currentColor" 
+                                             viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" 
+                                                  stroke-linejoin="round" 
+                                                  stroke-width="2" 
+                                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                                        </svg>
+                                    </a>
                                 </div>
                                 @endforeach
                             </div>
                         </div>
                     @endif
 
+                    <x-google-ad slot="post-top" />
+
                     <div class="mt-6 prose max-w-none">
                         {!! $post->description !!}
                     </div>
+
+                    <x-google-ad slot="post-middle" />
 
                     <div class="mt-8 border-t border-gray-200 pt-8">
                         <h2 class="text-xl font-semibold text-gray-900">Informations</h2>
@@ -123,24 +152,16 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+    <x-google-ad slot="post-bottom" />
 
-<style>
-    .social-button {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        height: 40px;
-        border-radius: 9999px;
-        color: white;
-        transition: all 0.2s;
-    }
-    .social-button:hover {
-        transform: scale(1.1);
-    }
-    .social-button.facebook { background-color: #1877f2; }
-    .social-button.twitter { background-color: #1da1f2; }
-    .social-button.whatsapp { background-color: #25d366; }
-    .social-button.telegram { background-color: #0088cc; }
-</style>
+    @push('scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+    <script>
+        lightbox.option({
+            'resizeDuration': 200,
+            'wrapAround': false,
+            'albumLabel': "Image %1 sur %2"
+        });
+    </script>
+    @endpush
+</x-app-layout>
