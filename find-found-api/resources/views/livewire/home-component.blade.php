@@ -76,7 +76,11 @@
     </div>
 
     <!-- Posts Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="col-span-1">
+            <!-- Publicité dans la barre latérale -->
+            <x-google-ad :slot="config('services.google.adsense.slots.sidebar')" />
+        </div>
         @foreach($recentPosts as $post)
         <div class="bg-white rounded-lg overflow-hidden">
             @if($post->images && count($post->images) > 0)

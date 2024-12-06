@@ -21,12 +21,6 @@
             <!-- Liste des posts -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach($posts as $post)
-                    @if($loop->iteration % 6 == 0)
-                        <div class="col-span-full">
-                            <x-google-ad slot="in-feed" />
-                        </div>
-                    @endif
-
                     <div class="bg-white border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-200">
                         <!-- Image -->
                         <div class="aspect-w-16 aspect-h-9 bg-gray-200">
@@ -103,6 +97,9 @@
                             </div>
                         </div>
                     </div>
+                    @if($loop->iteration % 5 == 0)
+                        <x-google-ad :slot="config('services.google.adsense.slots.in_article')" />
+                    @endif
                 @endforeach
             </div>
 

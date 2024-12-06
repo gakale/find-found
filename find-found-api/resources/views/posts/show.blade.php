@@ -146,6 +146,8 @@
                             </div>
                         @endif
                     </div>
+                    <!-- Publicité après le contenu -->
+                    <x-google-ad :slot="config('services.google.adsense.slots.in_article')" />
 
                     <div class="mt-12">
                         <h2 class="text-xl font-semibold text-gray-900 mb-6">Commentaires</h2>

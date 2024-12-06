@@ -39,6 +39,12 @@ return [
         'adsense' => [
             'enabled' => env('GOOGLE_ADSENSE_ENABLED', false),
             'client' => env('GOOGLE_ADSENSE_CLIENT', ''),
+            'slots' => [
+                'header' => env('GOOGLE_ADSENSE_SLOT_HEADER', ''),
+                'sidebar' => env('GOOGLE_ADSENSE_SLOT_SIDEBAR', ''),
+                'footer' => env('GOOGLE_ADSENSE_SLOT_FOOTER', ''),
+                'in_article' => env('GOOGLE_ADSENSE_SLOT_IN_ARTICLE', ''),
+            ],
         ],
     ],
 
