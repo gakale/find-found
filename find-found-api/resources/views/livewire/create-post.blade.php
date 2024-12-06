@@ -22,6 +22,31 @@
             @error('description') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
         </div>
 
+        @if($type !== 'missing_person')
+            <div>
+                <label for="category" class="block text-sm font-medium text-gray-700">Catégorie</label>
+                <select wire:model="category" id="category" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">Sélectionner une catégorie...</option>
+                    <option value="electronics">Électronique</option>
+                    <option value="jewelry">Bijoux</option>
+                    <option value="documents">Documents</option>
+                    <option value="clothing">Vêtements</option>
+                    <option value="accessories">Accessoires</option>
+                    <option value="pets">Animaux</option>
+                    <option value="keys">Clés</option>
+                    <option value="wallet">Portefeuille/Sac</option>
+                    <option value="other">Autre</option>
+                </select>
+                @error('category') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            </div>
+
+            <div>
+                <label for="date" class="block text-sm font-medium text-gray-700">Date</label>
+                <input type="datetime-local" wire:model="date" id="date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                @error('date') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            </div>
+        @endif
+
         <div>
             <label class="block text-sm font-medium text-gray-700">Images</label>
             <div class="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">

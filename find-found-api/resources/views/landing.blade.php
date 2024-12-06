@@ -118,12 +118,12 @@
                 <div class="bg-white rounded-2xl shadow-lg backdrop-blur-lg p-8">
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
                         <div class="text-center">
-                            <div class="text-3xl font-bold text-gray-900">{{ App\Models\Post::where('type', '!=', 'missing_person')->count() }}</div>
+                            <div class="text-3xl font-bold text-blue-900">{{ App\Models\Post::where('type', '!=', 'missing_person')->count() }}</div>
                             <div class="text-sm text-gray-600">Objets déclarés</div>
                         </div>
                         <div class="text-center">
-                            <div class="text-3xl font-bold text-gray-900">{{ App\Models\Post::where('status', 'found')->count() }}</div>
-                            <div class="text-sm text-gray-600">Objets retrouvés</div>
+                            <div class="text-3xl font-bold text-green-900">{{ App\Models\Post::where('type', 'found')->count() }}</div>
+                            <div class="text-sm text-green-600">Objets retrouvés</div>
                         </div>
                         <div class="text-center">
                             <div class="text-3xl font-bold text-red-600">{{ App\Models\Post::where('type', 'missing_person')->where('status', 'active')->count() }}</div>

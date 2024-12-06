@@ -99,8 +99,9 @@ class CreatePost extends Component
     public function mount()
     {
         $this->type = request()->query('type', 'lost');
+        $this->date = now()->format('Y-m-d');
         if ($this->type === 'missing_person') {
-            $this->date = $this->last_seen_date;
+            $this->last_seen_date = $this->date;
         }
     }
 

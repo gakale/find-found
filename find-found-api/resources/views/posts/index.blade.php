@@ -33,16 +33,16 @@
                         <div class="text-sm text-gray-600">Objets déclarés</div>
                     </div>
                     <div class="text-center">
-                        <div class="text-3xl font-bold text-gray-900">{{ \App\Models\Post::where('status', 'found')->count() }}</div>
-                        <div class="text-sm text-gray-600">Objets retrouvés</div>
+                        <div class="text-3xl font-bold text-gray-900">{{ \App\Models\Post::where('type', 'lost')->count() }}</div>
+                        <div class="text-sm text-gray-600">Objets perdus</div>
                     </div>
                     <div class="text-center">
                         <div class="text-3xl font-bold text-red-600">{{ \App\Models\Post::where('type', 'missing_person')->where('status', 'active')->count() }}</div>
-                        <div class="text-sm text-red-600">Personnes recherchées</div>
+                        <div class="text-sm text-red-600">Personnes Perdues</div>
                     </div>
                     <div class="text-center">
-                        <div class="text-3xl font-bold text-green-600">{{ \App\Models\Post::where('type', 'missing_person')->where('status', 'found')->count() }}</div>
-                        <div class="text-sm text-green-600">Personnes retrouvées</div>
+                        <div class="text-3xl font-bold text-gray-900">{{ \App\Models\Post::where('type', 'found')->count() }}</div>
+                        <div class="text-sm text-gray-600">Objets trouvés</div>
                     </div>
                 </div>
             </div>
