@@ -35,6 +35,7 @@ class CreatePost extends Component
     public $police_report_number;
     public $is_urgent = false;
     public $images = [];
+    public $newImage;
 
     protected function rules()
     {
@@ -48,7 +49,9 @@ class CreatePost extends Component
             'contact_email' => 'nullable|email',
             'has_reward' => 'boolean',
             'reward_amount' => 'nullable|numeric|min:0',
+            'images' => 'nullable|array|max:3',
             'images.*' => 'nullable|image|max:2048',
+            'newImage' => 'nullable|image|max:2048',
         ];
 
         if ($this->type === 'missing_person') {
@@ -94,6 +97,24 @@ class CreatePost extends Component
             $this->date = $this->last_seen_date;
         }
         $this->validateOnly($propertyName);
+    }
+
+    public function updatedNewImage()
+    {
+        if (count($this->images) >= 3) {
+            $this->addError('images', 'Vous ne pouvez pas ajouter plus de 3 images.');
+            $this->newImage = null;
+            return;
+        }
+
+        $this->validate([
+            'newImage' => 'image|max:2048'
+        ]);
+
+        if ($this->newImage) {
+            $this->images[] = $this->newImage;
+            $this->newImage = null;
+        }
     }
 
     public function mount()
@@ -158,6 +179,14 @@ class CreatePost extends Component
             Log::error('Erreur lors de la création du post: ' . $e->getMessage());
             session()->flash('error', 'Une erreur est survenue lors de la création de l\'annonce. Veuillez réessayer.');
             $this->dispatch('show-validation-errors', ['errors' => $this->getErrorBag()->toArray()]);
+        }
+    }
+
+    public function removeImage($index)
+    {
+        if (isset($this->images[$index])) {
+            unset($this->images[$index]);
+            $this->images = array_values($this->images);
         }
     }
 
