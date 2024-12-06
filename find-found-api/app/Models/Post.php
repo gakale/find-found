@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\Comment;
 use App\Models\Like;
+use App\Models\View;
 
 class Post extends Model
 {
@@ -66,6 +67,11 @@ class Post extends Model
         return $this->hasMany(Like::class);
     }
 
+    public function views()
+    {
+        return $this->hasMany(View::class);
+    }
+
     public function likedByUsers()
     {
         return $this->belongsToMany(User::class, 'likes');
@@ -74,6 +80,33 @@ class Post extends Model
     public function isLikedByUser($userId)
     {
         return $this->likes()->where('user_id', $userId)->exists();
+    }
+
+    public function addView()
+    {
+        $ip = request()->ip();
+        $userAgent = request()->userAgent();
+        $userId = auth()->id();
+
+        // Vérifie si l'utilisateur ou l'IP a déjà vu le post aujourd'hui
+        $view = $this->views()
+            ->where(function ($query) use ($ip, $userId) {
+                $query->where('ip_address', $ip)
+                    ->orWhere('user_id', $userId);
+            })
+            ->whereDate('created_at', today())
+            ->first();
+
+        if (!$view) {
+            $this->views()->create([
+                'ip_address' => $ip,
+                'user_agent' => $userAgent,
+                'user_id' => $userId,
+            ]);
+
+            // Incrémente le compteur de vues
+            $this->increment('views_count');
+        }
     }
 
     public function isMissingPerson()
