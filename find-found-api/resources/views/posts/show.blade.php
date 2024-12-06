@@ -39,15 +39,18 @@
                                 par {{ $post->user->name }}
                             </div>
                         </div>
-                        <span class="px-4 py-2 rounded-full text-sm font-semibold {{ 
-                            $post->type === 'lost' ? 'bg-red-100 text-red-800' : 
-                            ($post->type === 'found' ? 'bg-green-100 text-green-800' : 
-                            'bg-purple-100 text-purple-800') 
-                        }}">
-                            {{ $post->type === 'lost' ? 'Perdu' : 
-                               ($post->type === 'found' ? 'Trouvé' : 
-                               'Personne disparue') }}
-                        </span>
+                        <div class="flex items-center space-x-4">
+                            @livewire('like-button', ['post' => $post])
+                            <span class="px-4 py-2 rounded-full text-sm font-semibold {{ 
+                                $post->type === 'lost' ? 'bg-red-100 text-red-800' : 
+                                ($post->type === 'found' ? 'bg-green-100 text-green-800' : 
+                                'bg-purple-100 text-purple-800') 
+                            }}">
+                                {{ $post->type === 'lost' ? 'Perdu' : 
+                                   ($post->type === 'found' ? 'Trouvé' : 
+                                   'Personne disparue') }}
+                            </span>
+                        </div>
                         <!-- Boutons de partage -->
                         <div class="flex space-x-4">
                             <x-social-share 
