@@ -25,7 +25,7 @@ class PostsList extends Component
 
     public function render()
     {
-        $query = Post::with(['user', 'likes'])->withCount('likes')->latest();
+        $query = Post::with(['user', 'likes'])->withCount(['likes', 'views'])->latest();
 
         if ($this->type) {
             $query->where('type', $this->type);

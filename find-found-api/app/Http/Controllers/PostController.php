@@ -23,6 +23,7 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
+        $post->addView();
         // Le modèle utilise déjà le slug comme clé de route
         return view('posts.show', compact('post'));
     }
