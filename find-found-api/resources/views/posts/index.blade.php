@@ -4,7 +4,7 @@
             <!-- En-tête avec bannière -->
             <div class="bg-gradient-to-r from-brown-600 to-brown-700 rounded-lg shadow-lg mb-8 p-8 text-white">
                 <div class="max-w-3xl">
-                    <h1 class="text-4xl font-bold mb-4">Bienvenue sur Lost & Found</h1>
+                    <h1 class="text-4xl font-bold mb-4">Bienvenue sur Retrouvez</h1>
                     <p class="text-lg mb-6">Retrouvez vos objets perdus ou aidez les autres à retrouver les leurs.</p>
                     <div class="flex flex-col sm:flex-row gap-4">
                         <a href="{{ route('posts.create') }}" 
